@@ -92,10 +92,16 @@ private:
 		createInfo.pApplicationInfo = &appInfo;
 
 		uint32_t glfwExtensionCount = 0; 
-		const char** glfwExtensions; 
-		glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount); 
-		createInfo.enabledExtensionCount = glfwExtensionCount; 
-		createInfo.ppEnabledExtensionNames = glfwExtensions;
+		auto glfwExtensions = getRequiredExtensions();
+		createInfo.enabledExtensionCount = static_cast<uint32_t>(glfwExtensions.size());
+		createInfo.ppEnabledExtensionNames = glfwExtensions.data();
+
+		//Below codes are deprecated in favor of using our getRequiredExtensions function
+		//const char** glfwExtensions;
+		//glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+		//createInfo.enabledExtensionCount = glfwExtensionCount;
+		//createInfo.ppEnabledExtensionNames = glfwExtensions;
+
 
 		VkResult result = vkCreateInstance(&createInfo, nullptr, &instance);
 		if (result != VK_SUCCESS) {
@@ -135,5 +141,15 @@ private:
 	}
 
 	std::vector<const char*> getRequiredExtensions() {
+		uint32_t glfwExtensionCount = 0;
+		const char** glfwExtensions;
+		glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+
+		std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+		if (enableValidationLayers) {
+			extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+		}
+		return extensions;
+
 	}
 };
